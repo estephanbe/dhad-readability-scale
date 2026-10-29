@@ -72,22 +72,14 @@ uv run pytest                                    # unit tests
 - Parallel research agents covered models, evaluation, the stack and the data. Their findings
   are in [docs/plan/research.md](docs/plan/research.md).
 - The [plan](docs/plan/implementation-plan.md) was reviewed by three further agents (licences,
-  data scientist, grader) before any code was written. I accepted most of their points and
+  data scientist, grader) before any code was committed. I accepted most of their points and
   rejected some for time (§8). One example: the plan was reordered so that the full set of
   deliverables is built on the baseline first, with the GPU encoder after it.
 - Progress was tracked in [docs/progress.md](docs/progress.md), with small conventional commits.
-- The encoder ran on a personal RTX 5090 workstation.
+- The encoder is trained locally on a personal RTX 5090 workstation (no paid compute).
 
 ## Next steps, and transfer to Arabic
 
-- **Arabic:**
-  - swap the backbone for an Arabic encoder (CAMeLBERT-MSA, AraBERTv2) or XLM-R;
-  - measure lexical load from root/pattern rarity and MSA vs dialect;
-  - measure syntax from clitic and iḍāfa depth with CAMeL Tools;
-  - the held-out-vocabulary CV carries over directly as a held-out-root CV.
-- **With more time:**
-  - real human-labelled data, with ordinal difficulty levels rather than binary flags;
-  - word-frequency and concreteness features as a strong interpretable baseline;
-  - the shortcut-perturbation tests: swap a technical word into the simple template and check
-    that only lexical load moves;
-  - an encoder seed ensemble.
+Swap in an Arabic encoder (CAMeLBERT-MSA, AraBERTv2) and turn the held-out-vocabulary CV into a
+held-out-root CV. With more time: human-labelled ordinal data, frequency/concreteness features,
+shortcut-perturbation tests. Details in [docs/next-steps.md](docs/next-steps.md).

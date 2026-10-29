@@ -28,6 +28,8 @@ working documents into this repo unless asked.
 - Commit at least every 15 minutes while work is in progress, even unfinished
   work. A `post-commit` hook pushes each commit; if a push fails
   (`.git/push.log`), tell Bisharah right away.
+- Create tags as annotated tags (`git tag -a NAME -m "..."`). The hook pushes
+  annotated tags with the next commit; lightweight tags are never pushed.
 - Never rewrite history: no `commit --amend` on pushed commits, no rebase,
   no `reset` of pushed commits, no force-push, no deleting branches or tags.
 - Do not change the git remote, the hooks, repo visibility or git config.
