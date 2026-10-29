@@ -24,7 +24,6 @@ neural = [
 [project.scripts]
 dhad-train = "dhad.train:main"
 dhad-evaluate = "dhad.evaluate:main"
-dhad-predict = "dhad.predict:main"
 
 [dependency-groups]
 dev = ["pytest>=8", "ruff>=0.15"]

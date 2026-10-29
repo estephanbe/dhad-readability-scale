@@ -74,3 +74,10 @@ Status: ✅ done · 🔄 in progress · ⬜ to do
   It is exploratory: selection was already frozen, and it was not run on val.
   `results/encoder/config.json` records a stale `git_sha` (`0ed5061-dirty`), because the code was
   copied to the GPU host without its `.git`. The code that actually ran is `edcb880`.
+- **14:42** README trimmed to one page (545 words); encoder and process detail moved to
+  `docs/encoder.md` and `docs/how-i-worked.md`.
+- **14:44** Fresh-clone check: `uv sync`, `pytest` (20 passed, 1 skipped), `dhad-train --model
+  baseline` and `dhad-evaluate` reproduce every committed metric byte for byte. Only run
+  metadata differs (commit SHA, training time).
+- **14:47** Removed the `dhad-predict` entry point, which pointed at a missing `main()`. The CLI was
+  cut in plan §8; scoring is `dhad.predict.predict_proba`.
