@@ -217,7 +217,7 @@ body { margin: 0; font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial
 .hero .who { margin-top: 6mm; font-size: 8.5pt; opacity: .7; }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin: -18mm 0 8mm; }
 .stat { background: white; border-radius: 4mm; padding: 5mm 4mm; text-align: center;
-        box-shadow: 0 2mm 6mm rgba(20,33,61,.12); }
+        border: .35mm solid #dbe3ec; }
 .stat b { display: block; font-size: 22pt; line-height: 1.1; }
 .stat span { font-size: 8pt; color: #475569; }
 .eyebrow { font-size: 7.8pt; letter-spacing: .2em; text-transform: uppercase; color: #2a9d8f;
