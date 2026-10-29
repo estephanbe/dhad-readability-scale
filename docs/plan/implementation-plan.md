@@ -179,10 +179,8 @@ checkpoints/              gitignored weights
 
 ## 5. Compute: development on the Mac, encoder runs on the remote GPU
 
-The Mac lacks disk space for torch, CUDA and model weights. The encoder therefore trains on a
-separate workstation on the local network with an **NVIDIA RTX 5090** (32 GB, Blackwell sm_120).
-The repo refers to it only by a generic SSH alias, `gpu-host`, defined in the developer's own
-`~/.ssh/config`. No hostname, address or username is committed.
+The encoder trains on a personal workstation with an **NVIDIA RTX 5090** (32 GB, Blackwell
+sm_120), reached through a generic SSH alias, `gpu-host`. The baseline runs anywhere.
 
 **Prerequisites on the GPU host**
 - `nvidia-smi` works (the driver is loaded).
@@ -256,3 +254,42 @@ Never cut the single-use val discipline, the tests or the README.
   - 120-row val, so CIs are wide;
   - template shortcut learning for `syntactic_complexity`;
   - held-out-vocab CV only approximates real unseen text.
+
+## 8. Revisions after review (2026-10-29, 13:55)
+
+Three review agents read this plan: a model and licence check, a data scientist / readability
+expert, and a grader's-eye review. Accepted changes, which override the sections above:
+
+- **Models confirmed and licences verified** on the Hugging Face API:
+  - `microsoft/deberta-v3-base` (MIT) is the primary encoder;
+  - `answerdotai/ModernBERT-base` (Apache-2.0) is the fallback.
+  - `deberta-v3-large` was rejected: it is unstable on 480 rows.
+- **Reordered.** The full set of deliverables is built on the baseline first: CV, frozen
+  thresholds, val, README. The encoder then gets a fixed time box. If it is not done in time,
+  the baseline ships and the README says so.
+- **Held-out-vocab CV:**
+  - each word group is balanced by word type, using the label each word is most associated with
+    in train;
+  - results are reported as the mean of the per-fold metrics, because a row can sit in several
+    test folds;
+  - it is used for **model selection only**. Thresholds come from standard CV.
+- **Probabilities left undistorted:** no `class_weight="balanced"` and no label smoothing,
+  because the brief asks for probabilities and Brier score is reported.
+- **Floor per label:** the all-positive F1 floor is computed per label, not as one figure.
+- **A train-only analysis script** (`scripts/analyze_train.py`) is committed, so the figures in
+  research.md can be reproduced.
+- **Cut:**
+  - the encoder seed ensemble (1 seed);
+  - the paired bootstrap, cleanlab, the prior/stratified dummies (all-positive is kept);
+  - the repeated baseline CV (one 5-fold pass, C in {1, 3, 10});
+  - deterministic-algorithm flags (seed + git SHA + data hash are kept);
+  - the `dhad-predict` CLI (`predict_proba` covers the brief);
+  - the CPU fallback;
+  - the fresh-clone check (ruff + pytest are kept).
+- **Additions:**
+  - a `pre-val` git tag on the freeze commit;
+  - a short README "How I worked" section;
+  - a note on transferring this to Arabic;
+  - a "more time" list.
+- **Considered, not adopted (time):** a `wordfreq` / concreteness feature baseline. It is listed
+  under "more time".
