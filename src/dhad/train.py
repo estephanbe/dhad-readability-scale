@@ -127,10 +127,18 @@ def main(argv: list[str] | None = None) -> None:
     # 1. Hyperparameter choice on standard multi-label stratified CV (macro F1 at 0.5).
     print("standard CV", flush=True)
     std = cv_predict(args.model, args, texts, y, stratified_folds(y, args.folds, seed=args.seed))
-    scores = {
-        cand: compute_metrics(y, pool(preds, len(y)))["f1/macro"] for cand, preds in std.items()
-    }
-    best = max(scores, key=lambda c: scores[c])
+    scores = {}
+    for cand, preds in std.items():
+        oof_cand = pool(preds, len(y))
+        if np.isnan(oof_cand).any():  # Diverged training: report it, never score it.
+            print(f"  {cand}: NaN predictions, skipped", flush=True)
+            scores[cand] = float("nan")
+            continue
+        scores[cand] = compute_metrics(y, oof_cand)["f1/macro"]
+    valid = {c: s for c, s in scores.items() if not np.isnan(s)}
+    if not valid:
+        raise RuntimeError("every candidate produced NaN predictions")
+    best = max(valid, key=lambda c: valid[c])
     oof = pool(std[best], len(y))
 
     # 2. Per-label thresholds on the same out-of-fold predictions.

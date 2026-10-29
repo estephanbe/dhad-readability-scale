@@ -41,6 +41,9 @@ class EncoderConfig:
     weight_decay: float = 0.01
     warmup_frac: float = 0.1
     seed: int = 42
+    # Off by default: the first GPU run with bf16 autocast produced NaN probabilities.
+    # fp32 costs little here (480 short passages).
+    bf16: bool = False
 
 
 class EncoderClassifier:
@@ -82,11 +85,11 @@ class EncoderClassifier:
         return {k: v.to(self.device) for k, v in batch.items()}
 
     def _autocast(self) -> torch.autocast:
-        # bf16 on CUDA: DeBERTa-v3 is known to overflow in fp16; bf16 has fp32's range.
+        # Optional bf16 on CUDA (never fp16: DeBERTa-v3 is known to overflow in fp16).
         return torch.autocast(
             device_type=self.device.type,
             dtype=torch.bfloat16,
-            enabled=self.device.type == "cuda",
+            enabled=self.config.bf16 and self.device.type == "cuda",
         )
 
     def fit(
