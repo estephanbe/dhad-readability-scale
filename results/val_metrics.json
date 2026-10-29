@@ -1,0 +1,348 @@
+{
+  "meta": {
+    "git_sha": "a7425ce20f198b447bedbf7f4ed6d6635646ceae-dirty",
+    "val_sha256": "be6eeeb68e5be88eb442fa8d0b0fe2017edf641bdf136cbc8af289eebd1d8f4e",
+    "delivered": "baseline"
+  },
+  "baseline": {
+    "n": 120,
+    "thresholds": [
+      0.5,
+      0.5,
+      0.5
+    ],
+    "at_tuned": {
+      "f1/macro": 0.8050682261208576,
+      "f1/micro": 0.8068669527896996,
+      "subset_accuracy": 0.6583333333333333,
+      "hamming_loss": 0.125,
+      "f1/lexical_load": 0.6842105263157895,
+      "precision/lexical_load": 0.8387096774193549,
+      "recall/lexical_load": 0.5777777777777777,
+      "brier/lexical_load": 0.1550959342164252,
+      "prevalence_pred/lexical_load": 0.25833333333333336,
+      "prevalence_true/lexical_load": 0.375,
+      "roc_auc/lexical_load": 0.8124444444444444,
+      "avg_precision/lexical_load": 0.7811875089965472,
+      "f1/syntactic_complexity": 0.8421052631578947,
+      "precision/syntactic_complexity": 0.8888888888888888,
+      "recall/syntactic_complexity": 0.8,
+      "brier/syntactic_complexity": 0.0928064827224893,
+      "prevalence_pred/syntactic_complexity": 0.3,
+      "prevalence_true/syntactic_complexity": 0.3333333333333333,
+      "roc_auc/syntactic_complexity": 0.8853125000000001,
+      "avg_precision/syntactic_complexity": 0.8533941821238482,
+      "f1/conceptual_abstraction": 0.8888888888888888,
+      "precision/conceptual_abstraction": 0.9473684210526315,
+      "recall/conceptual_abstraction": 0.8372093023255814,
+      "brier/conceptual_abstraction": 0.08323112546328695,
+      "prevalence_pred/conceptual_abstraction": 0.31666666666666665,
+      "prevalence_true/conceptual_abstraction": 0.35833333333333334,
+      "roc_auc/conceptual_abstraction": 0.9063726970703715,
+      "avg_precision/conceptual_abstraction": 0.8811742287757454
+    },
+    "at_0.5": {
+      "f1/macro": 0.8050682261208576,
+      "f1/micro": 0.8068669527896996,
+      "subset_accuracy": 0.6583333333333333,
+      "hamming_loss": 0.125,
+      "f1/lexical_load": 0.6842105263157895,
+      "precision/lexical_load": 0.8387096774193549,
+      "recall/lexical_load": 0.5777777777777777,
+      "brier/lexical_load": 0.1550959342164252,
+      "prevalence_pred/lexical_load": 0.25833333333333336,
+      "prevalence_true/lexical_load": 0.375,
+      "roc_auc/lexical_load": 0.8124444444444444,
+      "avg_precision/lexical_load": 0.7811875089965472,
+      "f1/syntactic_complexity": 0.8421052631578947,
+      "precision/syntactic_complexity": 0.8888888888888888,
+      "recall/syntactic_complexity": 0.8,
+      "brier/syntactic_complexity": 0.0928064827224893,
+      "prevalence_pred/syntactic_complexity": 0.3,
+      "prevalence_true/syntactic_complexity": 0.3333333333333333,
+      "roc_auc/syntactic_complexity": 0.8853125000000001,
+      "avg_precision/syntactic_complexity": 0.8533941821238482,
+      "f1/conceptual_abstraction": 0.8888888888888888,
+      "precision/conceptual_abstraction": 0.9473684210526315,
+      "recall/conceptual_abstraction": 0.8372093023255814,
+      "brier/conceptual_abstraction": 0.08323112546328695,
+      "prevalence_pred/conceptual_abstraction": 0.31666666666666665,
+      "prevalence_true/conceptual_abstraction": 0.35833333333333334,
+      "roc_auc/conceptual_abstraction": 0.9063726970703715,
+      "avg_precision/conceptual_abstraction": 0.8811742287757454
+    },
+    "ci_at_tuned": {
+      "f1/macro": [
+        0.7455316678926112,
+        0.856349369911664
+      ],
+      "f1/micro": [
+        0.75,
+        0.859504132231405
+      ],
+      "subset_accuracy": [
+        0.575,
+        0.7416666666666667
+      ],
+      "hamming_loss": [
+        0.09444444444444444,
+        0.15833333333333333
+      ],
+      "f1/lexical_load": [
+        0.5555555555555556,
+        0.7906976744186046
+      ],
+      "precision/lexical_load": [
+        0.696969696969697,
+        0.9629629629629629
+      ],
+      "recall/lexical_load": [
+        0.4375,
+        0.7115384615384616
+      ],
+      "brier/lexical_load": [
+        0.11793924748645432,
+        0.19462236532045346
+      ],
+      "prevalence_pred/lexical_load": [
+        0.18333333333333332,
+        0.3333333333333333
+      ],
+      "prevalence_true/lexical_load": [
+        0.2916666666666667,
+        0.4583333333333333
+      ],
+      "roc_auc/lexical_load": [
+        0.7209135518283255,
+        0.8988229839927515
+      ],
+      "avg_precision/lexical_load": [
+        0.6654755502279548,
+        0.8860269186586892
+      ],
+      "f1/syntactic_complexity": [
+        0.7384615384615385,
+        0.9176470588235294
+      ],
+      "precision/syntactic_complexity": [
+        0.7727272727272727,
+        0.9736842105263158
+      ],
+      "recall/syntactic_complexity": [
+        0.6666666666666666,
+        0.9166666666666666
+      ],
+      "brier/syntactic_complexity": [
+        0.04918952947623633,
+        0.14435644250839094
+      ],
+      "prevalence_pred/syntactic_complexity": [
+        0.225,
+        0.38333333333333336
+      ],
+      "prevalence_true/syntactic_complexity": [
+        0.25,
+        0.4166666666666667
+      ],
+      "roc_auc/syntactic_complexity": [
+        0.80354075568684,
+        0.9515285979959893
+      ],
+      "avg_precision/syntactic_complexity": [
+        0.7467232092037583,
+        0.9343316458706208
+      ],
+      "f1/conceptual_abstraction": [
+        0.8108108108108109,
+        0.9534883720930233
+      ],
+      "precision/conceptual_abstraction": [
+        0.8648648648648649,
+        1.0
+      ],
+      "recall/conceptual_abstraction": [
+        0.7272727272727273,
+        0.9393939393939394
+      ],
+      "brier/conceptual_abstraction": [
+        0.04948504150443672,
+        0.1197184110764558
+      ],
+      "prevalence_pred/conceptual_abstraction": [
+        0.23333333333333334,
+        0.4
+      ],
+      "prevalence_true/conceptual_abstraction": [
+        0.275,
+        0.44166666666666665
+      ],
+      "roc_auc/conceptual_abstraction": [
+        0.832655430004059,
+        0.9694818349609048
+      ],
+      "avg_precision/conceptual_abstraction": [
+        0.7848657333714831,
+        0.9620439612413745
+      ]
+    },
+    "syntactic_by_template": {
+      "simple": {
+        "n": 84,
+        "positives": 8,
+        "f1": 0.0
+      },
+      "complex": {
+        "n": 36,
+        "positives": 32,
+        "f1": 0.9411764705882353
+      }
+    }
+  },
+  "all-positive floor": {
+    "n": 120,
+    "at_tuned": {
+      "f1/macro": 0.5243539691392453,
+      "f1/micro": 0.5245901639344263,
+      "subset_accuracy": 0.05,
+      "hamming_loss": 0.6444444444444445,
+      "f1/lexical_load": 0.5454545454545454,
+      "precision/lexical_load": 0.375,
+      "recall/lexical_load": 1.0,
+      "brier/lexical_load": 0.625,
+      "prevalence_pred/lexical_load": 1.0,
+      "prevalence_true/lexical_load": 0.375,
+      "roc_auc/lexical_load": 0.5,
+      "avg_precision/lexical_load": 0.375,
+      "f1/syntactic_complexity": 0.5,
+      "precision/syntactic_complexity": 0.3333333333333333,
+      "recall/syntactic_complexity": 1.0,
+      "brier/syntactic_complexity": 0.6666666666666666,
+      "prevalence_pred/syntactic_complexity": 1.0,
+      "prevalence_true/syntactic_complexity": 0.3333333333333333,
+      "roc_auc/syntactic_complexity": 0.5,
+      "avg_precision/syntactic_complexity": 0.3333333333333333,
+      "f1/conceptual_abstraction": 0.5276073619631901,
+      "precision/conceptual_abstraction": 0.35833333333333334,
+      "recall/conceptual_abstraction": 1.0,
+      "brier/conceptual_abstraction": 0.6416666666666667,
+      "prevalence_pred/conceptual_abstraction": 1.0,
+      "prevalence_true/conceptual_abstraction": 0.35833333333333334,
+      "roc_auc/conceptual_abstraction": 0.5,
+      "avg_precision/conceptual_abstraction": 0.35833333333333334
+    },
+    "ci_at_tuned": {
+      "f1/macro": [
+        0.46798566586906826,
+        0.575726628561619
+      ],
+      "f1/micro": [
+        0.471256267786963,
+        0.5770750988142292
+      ],
+      "subset_accuracy": [
+        0.016666666666666666,
+        0.09166666666666666
+      ],
+      "hamming_loss": [
+        0.5944444444444444,
+        0.6917361111111107
+      ],
+      "f1/lexical_load": [
+        0.45161290322580644,
+        0.6285714285714286
+      ],
+      "precision/lexical_load": [
+        0.2916666666666667,
+        0.4583333333333333
+      ],
+      "recall/lexical_load": [
+        1.0,
+        1.0
+      ],
+      "brier/lexical_load": [
+        0.5416666666666666,
+        0.7083333333333334
+      ],
+      "prevalence_pred/lexical_load": [
+        1.0,
+        1.0
+      ],
+      "prevalence_true/lexical_load": [
+        0.2916666666666667,
+        0.4583333333333333
+      ],
+      "roc_auc/lexical_load": [
+        0.5,
+        0.5
+      ],
+      "avg_precision/lexical_load": [
+        0.2916666666666667,
+        0.4583333333333333
+      ],
+      "f1/syntactic_complexity": [
+        0.4,
+        0.5882352941176471
+      ],
+      "precision/syntactic_complexity": [
+        0.25,
+        0.4166666666666667
+      ],
+      "recall/syntactic_complexity": [
+        1.0,
+        1.0
+      ],
+      "brier/syntactic_complexity": [
+        0.5833333333333334,
+        0.75
+      ],
+      "prevalence_pred/syntactic_complexity": [
+        1.0,
+        1.0
+      ],
+      "prevalence_true/syntactic_complexity": [
+        0.25,
+        0.4166666666666667
+      ],
+      "roc_auc/syntactic_complexity": [
+        0.5,
+        0.5
+      ],
+      "avg_precision/syntactic_complexity": [
+        0.25,
+        0.4166666666666667
+      ],
+      "f1/conceptual_abstraction": [
+        0.43137254901960786,
+        0.6127167630057804
+      ],
+      "precision/conceptual_abstraction": [
+        0.275,
+        0.44166666666666665
+      ],
+      "recall/conceptual_abstraction": [
+        1.0,
+        1.0
+      ],
+      "brier/conceptual_abstraction": [
+        0.5583333333333333,
+        0.725
+      ],
+      "prevalence_pred/conceptual_abstraction": [
+        1.0,
+        1.0
+      ],
+      "prevalence_true/conceptual_abstraction": [
+        0.275,
+        0.44166666666666665
+      ],
+      "roc_auc/conceptual_abstraction": [
+        0.5,
+        0.5
+      ],
+      "avg_precision/conceptual_abstraction": [
+        0.275,
+        0.44166666666666665
+      ]
+    }
+  }
+}
