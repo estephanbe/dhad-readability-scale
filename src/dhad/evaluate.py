@@ -83,9 +83,7 @@ def report_table(results: dict[str, dict], delivered: str) -> str:
     ]
     for name, r in results.items():
         for template, s in r.get("syntactic_by_template", {}).items():
-            lines.append(
-                f"| {name} | {template} | {s['n']} | {s['positives']} | {s['f1']:.3f} |"
-            )
+            lines.append(f"| {name} | {template} | {s['n']} | {s['positives']} | {s['f1']:.3f} |")
     return "\n".join(lines).replace("{n}", str(n)) + "\n"
 
 

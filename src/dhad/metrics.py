@@ -64,9 +64,7 @@ def compute_metrics(
     return {k: float(v) for k, v in out.items()}
 
 
-def tune_thresholds(
-    y: np.ndarray, oof_proba: np.ndarray, min_gain: float = 0.01
-) -> list[float]:
+def tune_thresholds(y: np.ndarray, oof_proba: np.ndarray, min_gain: float = 0.01) -> list[float]:
     """Choose a per-label threshold on out-of-fold predictions.
 
     The rule is fixed in advance to limit overfitting: keep 0.5 unless the best grid

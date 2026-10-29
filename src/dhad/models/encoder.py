@@ -112,9 +112,7 @@ class EncoderClassifier:
         )
         steps_per_epoch = math.ceil(len(texts) / cfg.batch_size)
         total = steps_per_epoch * cfg.epochs
-        scheduler = get_linear_schedule_with_warmup(
-            optimizer, int(cfg.warmup_frac * total), total
-        )
+        scheduler = get_linear_schedule_with_warmup(optimizer, int(cfg.warmup_frac * total), total)
         targets = torch.tensor(y, dtype=torch.float32)
         rng = np.random.default_rng(cfg.seed)
         per_epoch = []

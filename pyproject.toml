@@ -49,3 +49,4 @@ convention = "google"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]  # robust even if the editable .pth is skipped (iCloud marks it hidden)
