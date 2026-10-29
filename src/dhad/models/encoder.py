@@ -41,8 +41,7 @@ class EncoderConfig:
     weight_decay: float = 0.01
     warmup_frac: float = 0.1
     seed: int = 42
-    # Off by default: the first GPU run with bf16 autocast produced NaN probabilities.
-    # fp32 costs little here (480 short passages).
+    # Off by default: fp32 costs little here (480 short passages) and keeps the run simple.
     bf16: bool = False
 
 
@@ -72,6 +71,9 @@ class EncoderClassifier:
             problem_type="multi_label_classification",
             id2label=dict(enumerate(LABELS)),
             label2id={name: i for i, name in enumerate(LABELS)},
+            # transformers 5 keeps the checkpoint's stored dtype (fp16 for DeBERTa-v3);
+            # optimising fp16 master weights with AdamW diverges to NaN, so force fp32.
+            dtype=torch.float32,
         ).to(self.device)
 
     def _encode(self, texts: list[str]) -> dict[str, torch.Tensor]:
@@ -163,5 +165,7 @@ class EncoderClassifier:
         config = EncoderConfig(**json.loads((directory / "encoder_config.json").read_text()))
         obj = cls(config)
         obj.tokenizer = AutoTokenizer.from_pretrained(directory)
-        obj.model = AutoModelForSequenceClassification.from_pretrained(directory).to(obj.device)
+        obj.model = AutoModelForSequenceClassification.from_pretrained(
+            directory, dtype=torch.float32
+        ).to(obj.device)
         return obj
