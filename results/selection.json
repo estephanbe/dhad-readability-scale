@@ -1,0 +1,7 @@
+{
+  "delivered": "baseline",
+  "run": "checkpoints/baseline",
+  "thresholds": {"lexical_load": 0.5, "syntactic_complexity": 0.5, "conceptual_abstraction": 0.5},
+  "reason": "Frozen before val.csv is opened. Only the TF-IDF baseline has completed train CV (standard macro F1 0.828, held-out-vocab 0.741); the encoder has not been run yet. Any encoder result obtained after this freeze is reported as exploratory and cannot replace the delivered model.",
+  "frozen_at": "2026-10-29T14:10"
+}
