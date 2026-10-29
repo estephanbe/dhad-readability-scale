@@ -19,6 +19,29 @@ Given a passage, returns three probabilities in [0, 1]: `lexical_load`, `syntact
 On unseen words it reaches CV macro F1 0.772 against the baseline's 0.741, so it would have won
 under the pre-set rule. Details are in [docs/encoder.md](docs/encoder.md).
 
+## Behavioural tests: what did each model actually learn?
+
+F1 cannot tell you *why* a model is right. [`scripts/behavioural_tests.py`](scripts/behavioural_tests.py)
+builds 200 minimal pairs from the training templates and changes **one factor** at a time. It
+uses words seen in train and words that **never occur in train** (this is checked). Each cell is
+the mean change in predicted probability (val is not touched):
+
+| Edit | Model | lexical | syntactic | abstraction |
+|---|---|---|---|---|
+| Add a technical term, seen in train | baseline / encoder | **+0.39** / **+0.69** | +0.01 / −0.02 | +0.03 / +0.01 |
+| Add a technical term, **unseen** (*isotope*, *jurisprudence*) | baseline / encoder | +0.10 / **+0.65** | +0.00 / −0.03 | +0.01 / +0.00 |
+| Abstract topics, seen in train | baseline / encoder | −0.03 / +0.02 | −0.00 / −0.01 | **+0.64** / **+0.76** |
+| Abstract topics, **unseen** (*morality*, *virtue*) | baseline / encoder | −0.00 / +0.00 | +0.01 / +0.00 | +0.22 / **+0.74** |
+| Same words, complex template | baseline / encoder | +0.10 / +0.17 | **+0.89** / **+0.89** | +0.04 / −0.02 |
+
+- **Both models respond to the right factor.** Each edit moves its own label and leaves the
+  other two almost flat.
+- **Only the encoder generalises.** With unseen words the baseline moves only +0.10 and +0.22,
+  while the encoder keeps +0.65 and +0.74. This is the held-out-vocabulary result, shown one
+  passage at a time.
+- **A shortcut both models share:** the complex template alone raises `lexical_load`, by +0.10 and
+  +0.17. It contains the word "Terminology".
+
 ## Install, train, evaluate
 
 ```bash
@@ -56,7 +79,8 @@ uv run pytest                                    # unit tests
 ## Limitations
 
 - **Syntactic complexity is learned from the template.** Within a template its F1 is 0.00
-  (simple template, 8 positives) and 0.94 (complex template).
+  (simple template, 8 positives) and 0.94 (complex template). The template also leaks into
+  `lexical_load`, as the behavioural tests show.
 - **Noisy labels.** The labels are synthetic and noisy, which caps the reachable F1; the ceilings
   are in [the analysis](results/train_analysis.md).
 - **Small val set.** On 120 rows, differences under about 0.05 F1 are not meaningful.

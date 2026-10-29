@@ -81,3 +81,10 @@ Status: ✅ done · 🔄 in progress · ⬜ to do
   metadata differs (commit SHA, training time).
 - **14:47** Removed the `dhad-predict` entry point, which pointed at a missing `main()`. The CLI was
   cut in plan §8; scoring is `dhad.predict.predict_proba`.
+- **14:55** Behavioural tests (`scripts/behavioural_tests.py`), with minimal pairs built from the
+  train templates and seen vs never-seen words.
+  - The encoder generalises to unseen words (+0.65 / +0.74); the baseline mostly does not
+    (+0.10 / +0.22).
+  - Both models carry a template → lexical shortcut.
+  - The tests exposed a checkpoint bug: the run `config.json` overwrote the HF model config. Fixed
+    by renaming it `run_config.json`.

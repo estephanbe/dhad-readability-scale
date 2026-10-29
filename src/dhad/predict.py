@@ -19,7 +19,7 @@ def load_model(run_dir: str | Path) -> tuple[Any, dict[str, Any]]:
         ``(model, config)`` where ``config["thresholds"]`` holds the per-label thresholds.
     """
     run_dir = Path(run_dir)
-    config = json.loads((run_dir / "config.json").read_text())
+    config = json.loads((run_dir / "run_config.json").read_text())
     if config["kind"] == "baseline":
         from dhad.models.baseline import TfidfLogReg
 

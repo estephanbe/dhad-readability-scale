@@ -1,0 +1,56 @@
+{
+  "baseline": {
+    "lexical (seen words)": {
+      "lexical_load": 0.385,
+      "syntactic_complexity": 0.007,
+      "conceptual_abstraction": 0.025
+    },
+    "abstract (seen words)": {
+      "lexical_load": -0.031,
+      "syntactic_complexity": -0.001,
+      "conceptual_abstraction": 0.638
+    },
+    "syntactic": {
+      "lexical_load": 0.103,
+      "syntactic_complexity": 0.89,
+      "conceptual_abstraction": 0.04
+    },
+    "lexical (unseen words)": {
+      "lexical_load": 0.097,
+      "syntactic_complexity": 0.002,
+      "conceptual_abstraction": 0.009
+    },
+    "abstract (unseen words)": {
+      "lexical_load": -0.0,
+      "syntactic_complexity": 0.008,
+      "conceptual_abstraction": 0.224
+    }
+  },
+  "encoder": {
+    "lexical (seen words)": {
+      "lexical_load": 0.6909999847412109,
+      "syntactic_complexity": -0.017999999225139618,
+      "conceptual_abstraction": 0.013000000268220901
+    },
+    "abstract (seen words)": {
+      "lexical_load": 0.01899999938905239,
+      "syntactic_complexity": -0.007000000216066837,
+      "conceptual_abstraction": 0.7639999985694885
+    },
+    "syntactic": {
+      "lexical_load": 0.16500000655651093,
+      "syntactic_complexity": 0.890999972820282,
+      "conceptual_abstraction": -0.020999999716877937
+    },
+    "lexical (unseen words)": {
+      "lexical_load": 0.6539999842643738,
+      "syntactic_complexity": -0.03099999949336052,
+      "conceptual_abstraction": 0.003000000026077032
+    },
+    "abstract (unseen words)": {
+      "lexical_load": 0.004000000189989805,
+      "syntactic_complexity": 0.0010000000474974513,
+      "conceptual_abstraction": 0.7400000095367432
+    }
+  }
+}

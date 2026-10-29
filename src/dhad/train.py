@@ -182,7 +182,8 @@ def main(argv: list[str] | None = None) -> None:
         "train_sha256": file_sha256(args.train),
         "train_seconds": round(time.time() - started, 1),
     }
-    (out / "config.json").write_text(json.dumps(config, indent=2))
+    # Not "config.json": that name belongs to the Hugging Face model config in the same dir.
+    (out / "run_config.json").write_text(json.dumps(config, indent=2))
     (results / "config.json").write_text(json.dumps(config, indent=2))
     (results / "cv_metrics.json").write_text(json.dumps(cv_report, indent=2))
     (results / "heldout_vocab.json").write_text(

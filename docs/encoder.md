@@ -37,3 +37,16 @@ train cross-validation, from [`results/encoder/cv_metrics.json`](../results/enco
 - **Run record:** the run took 116 s on an RTX 5090. `results/encoder/config.json` records a stale
   `git_sha` (`0ed5061-dirty`), because the code was copied to the GPU host without its `.git`.
   The code that ran is commit `edcb880`.
+- **Second bug, found by the behavioural tests:** `dhad-train` wrote its run `config.json` into
+  the checkpoint directory, which overwrote the Hugging Face model `config.json`, so the encoder
+  checkpoint could not be reloaded.
+  - The run file is now `run_config.json`.
+  - For the existing checkpoint, the architecture config was regenerated from the backbone and
+    the training arguments (`num_labels=3`, multi-label, label names). The weights are unchanged.
+  - The baseline was unaffected (its weights are `model.joblib`).
+
+## Behavioural tests
+
+See the README section and [`results/behavioural_tests.json`](../results/behavioural_tests.json).
+- On unseen technical terms and abstract nouns, the encoder's probability shift is +0.65 / +0.74,
+  against the baseline's +0.10 / +0.22.

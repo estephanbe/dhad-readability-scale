@@ -101,6 +101,7 @@ def main(argv: list[str] | None = None) -> None:
     val = load_split(args.val)
     y = val.y
     # Template membership for the shortcut check (the complex template opens with "Although").
+    # Reporting slice only: it never produces labels, features or any modelling decision.
     complex_template = np.array([t.startswith("Although") for t in val.texts])
 
     results: dict[str, dict] = {}
