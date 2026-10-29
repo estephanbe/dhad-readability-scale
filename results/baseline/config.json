@@ -1,0 +1,19 @@
+{
+  "kind": "baseline",
+  "chosen": "C=3.0",
+  "thresholds": [
+    0.5,
+    0.5,
+    0.5
+  ],
+  "labels": [
+    "lexical_load",
+    "syntactic_complexity",
+    "conceptual_abstraction"
+  ],
+  "seed": 42,
+  "backbone": null,
+  "git_sha": "9173d65ed9404f2983d14dac9ff080ecc5cd5c19-dirty",
+  "train_sha256": "341d65b94b67acc3b961455a2896d4f978596b008636869a7d0397996c0cff7f",
+  "train_seconds": 5.6
+}

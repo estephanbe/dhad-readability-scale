@@ -1,0 +1,51 @@
+[project]
+name = "dhad"
+version = "0.1.0"
+description = "Multi-label readability classifier: lexical load, syntactic complexity, conceptual abstraction."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "iterative-stratification>=0.1.9",
+    "joblib>=1.4",
+    "numpy>=2.0",
+    "pandas>=2.2",
+    "scikit-learn>=1.6",
+]
+
+[project.optional-dependencies]
+# Heavy deep-learning stack: installed only on the GPU host (`uv sync --extra neural`).
+neural = [
+    "protobuf>=5",
+    "sentencepiece>=0.2",
+    "torch>=2.7",
+    "transformers>=5.0",
+]
+
+[project.scripts]
+dhad-train = "dhad.train:main"
+dhad-evaluate = "dhad.evaluate:main"
+dhad-predict = "dhad.predict:main"
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.15"]
+
+[build-system]
+requires = ["uv_build>=0.9,<0.14"]
+build-backend = "uv_build"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "N", "D", "SIM", "RUF", "NPY"]
+ignore = ["D105", "D107", "N803", "N806"]  # N803/N806: allow ML-convention names such as X, Y.
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

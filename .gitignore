@@ -6,3 +6,8 @@ __pycache__/
 checkpoints/
 *.pt
 *.safetensors
+*.bin
+*.joblib
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
