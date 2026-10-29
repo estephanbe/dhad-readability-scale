@@ -27,6 +27,10 @@ dhad-evaluate = "dhad.evaluate:main"
 
 [dependency-groups]
 dev = ["pytest>=8", "ruff>=0.15"]
+report = [
+    "matplotlib>=3.11.2",
+    "reportlab>=5.1.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.9,<0.14"]
@@ -45,6 +49,7 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D"]
+"scripts/make_report.py" = ["E501", "RUF001"]  # long prose strings, typographic dashes
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
