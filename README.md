@@ -85,6 +85,6 @@ uv run pytest                                    # unit tests
 Rules for the coding agents are in [AGENTS.md](AGENTS.md). Parallel agents did the research and
 reviewed the plan before any code was written. I built the deliverables on the baseline first,
 then trained the encoder on a personal RTX 5090. More in [docs/how-i-worked.md](docs/how-i-worked.md);
-next steps, including transfer to Arabic, in [docs/next-steps.md](docs/next-steps.md).
+future work, including transfer to Arabic, in [docs/next-steps.md](docs/next-steps.md).
 Illustrated PDF report: [docs/report.pdf](docs/report.pdf)
 (rebuild with `uv run --group report python scripts/make_report.py`).

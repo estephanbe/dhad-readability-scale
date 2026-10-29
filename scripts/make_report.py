@@ -457,7 +457,7 @@ def main() -> None:
       <li>120 validation rows: gaps under about 0.05 F1 are noise.</li>
       <li>The encoder came after the freeze: exploratory, no val score. Two bugs found on
       the way were fixed and documented.</li></ul></div>
-    <div class="card"><h4>Next: transfer to Arabic</h4><ul>
+    <div class="card"><h4>Future work: transfer to Arabic</h4><ul>
       <li>Arabic encoder (CAMeLBERT-MSA, AraBERTv2); held-out-vocabulary CV becomes
       held-out-root CV.</li>
       <li>Lexical load from root and pattern rarity; syntax from clitic and iḍāfa depth.</li>

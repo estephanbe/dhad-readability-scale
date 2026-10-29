@@ -1,4 +1,6 @@
-# Next steps, and transfer to Arabic
+# Future work, including transfer to Arabic
+
+Suggestions only: none of this is part of the brief or implemented in this repo.
 
 
 - **Arabic:**
