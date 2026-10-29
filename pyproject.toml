@@ -29,7 +29,6 @@ dhad-evaluate = "dhad.evaluate:main"
 dev = ["pytest>=8", "ruff>=0.15"]
 report = [
     "matplotlib>=3.11.2",
-    "reportlab>=5.1.0",
 ]
 
 [build-system]

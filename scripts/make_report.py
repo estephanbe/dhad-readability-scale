@@ -1,7 +1,8 @@
-"""Build docs/report.pdf: project report with figures.
+"""Build docs/report.pdf: an illustrated project report.
 
 Every number is read from the committed result files and git history at build time,
-so the report cannot drift from the repository.
+so the report cannot drift from the repository. Charts are drawn with matplotlib, the
+layout is HTML/CSS, and headless Chrome prints it to PDF.
 
 Usage:
     uv run --group report python scripts/make_report.py
@@ -10,6 +11,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import tempfile
 from pathlib import Path
@@ -18,39 +20,34 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from matplotlib.patches import FancyArrowPatch, FancyBboxPatch
-from reportlab.lib import colors
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.units import cm
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import (
-    Image,
-    KeepTogether,
-    PageBreak,
-    Paragraph,
-    SimpleDocTemplate,
-    Spacer,
-    Table,
-    TableStyle,
-)
 
 ROOT = Path(__file__).resolve().parents[1]
 RES = ROOT / "results"
 OUT = ROOT / "docs" / "report.pdf"
 LABELS = ("lexical_load", "syntactic_complexity", "conceptual_abstraction")
 SHORT = ("Lexical load", "Syntactic complexity", "Conceptual abstraction")
+CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
-NAVY, TEAL, CORAL, GOLD, GREY = "#14213d", "#2a9d8f", "#e76f51", "#e9c46a", "#8d99ae"
+NAVY, TEAL, CORAL, GOLD, GREY = "#14213d", "#2a9d8f", "#e76f51", "#e9c46a", "#94a3b8"
 LIGHT = "#f1f5f9"
 
-# DejaVu ships with matplotlib and covers arrows, dashes and Arabic-free Unicode text.
-_FONTS = Path(matplotlib.get_data_path()) / "fonts" / "ttf"
-pdfmetrics.registerFont(TTFont("DV", str(_FONTS / "DejaVuSans.ttf")))
-pdfmetrics.registerFont(TTFont("DVB", str(_FONTS / "DejaVuSans-Bold.ttf")))
-plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 10})
+plt.rcParams.update(
+    {
+        "font.family": "DejaVu Sans",
+        "font.size": 10,
+        "axes.edgecolor": "#cbd5e1",
+        "axes.labelcolor": "#334155",
+        "xtick.color": "#334155",
+        "ytick.color": "#64748b",
+        "axes.grid": True,
+        "axes.grid.axis": "y",
+        "grid.color": "#e2e8f0",
+        "axes.axisbelow": True,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.spines.left": False,
+    }
+)
 
 
 def load(path: str) -> dict:
@@ -68,101 +65,7 @@ def commits() -> list[tuple[str, str, str]]:
     return [tuple(line.split("|", 2)) for line in log.strip().splitlines()]
 
 
-# ---------------------------------------------------------------- figures
-
-
-def fig_cover(path: Path, val: dict, beh: dict, n_commits: int, minutes: int) -> None:
-    """Headline stat tiles."""
-    enc_unseen = beh["encoder"]
-    tiles = [
-        (f"{val['baseline']['at_tuned']['f1/macro']:.3f}", "val macro F1\n(floor 0.524)"),
-        (
-            f"+{enc_unseen['lexical (unseen words)']['lexical_load']:.2f}",
-            "encoder response to\nunseen technical words",
-        ),
-        (f"{n_commits}", f"commits in\n{minutes} minutes"),
-        ("13", "AI agents for research,\nreview, build and QC"),
-    ]
-    fig, axes = plt.subplots(1, 4, figsize=(10, 2.1))
-    for ax, (big, small), c in zip(axes, tiles, (TEAL, CORAL, NAVY, GOLD), strict=True):
-        ax.axis("off")
-        ax.add_patch(
-            FancyBboxPatch(
-                (0.02, 0.02),
-                0.96,
-                0.96,
-                boxstyle="round,pad=0.02",
-                fc=LIGHT,
-                ec=c,
-                lw=2.5,
-                transform=ax.transAxes,
-            )
-        )
-        ax.text(0.5, 0.62, big, ha="center", va="center", fontsize=26, weight="bold", color=c)
-        ax.text(0.5, 0.22, small, ha="center", va="center", fontsize=9, color=NAVY)
-    fig.savefig(path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-
-
-def _box(ax, x, y, w, h, text, fc, tc="white", fs=9):
-    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.02", fc=fc, ec="none"))
-    ax.text(
-        x + w / 2,
-        y + h / 2,
-        text,
-        ha="center",
-        va="center",
-        color=tc,
-        fontsize=fs,
-        weight="bold",
-        wrap=True,
-    )
-
-
-def _arrow(ax, a, b, color=NAVY):
-    ax.add_patch(FancyArrowPatch(a, b, arrowstyle="-|>", mutation_scale=14, color=color, lw=1.5))
-
-
-def fig_workflow(path: Path) -> None:
-    """The delivery pipeline, with the val firewall."""
-    steps = [
-        ("Discover\n4 research\nagents", GREY),
-        ("Plan\ncommitted", GREY),
-        ("Review\n3 review\nagents", GREY),
-        ("Build\nbaseline\n+2 agents", TEAL),
-        ("Freeze\ntag\npre-val", CORAL),
-        ("val.csv\nonce", CORAL),
-        ("Encoder\nRTX 5090", TEAL),
-        ("Behaviour\ntests", TEAL),
-        ("Final QC\n4 QC\nagents", NAVY),
-    ]
-    fig, ax = plt.subplots(figsize=(10, 2.4))
-    ax.set_xlim(0, 9.2)
-    ax.set_ylim(0, 2.2)
-    ax.axis("off")
-    for i, (t, c) in enumerate(steps):
-        _box(ax, i * 1.02 + 0.05, 0.7, 0.9, 1.0, t, c, fs=7)
-        if i:
-            _arrow(ax, (i * 1.02 - 0.07, 1.15), (i * 1.02 + 0.05, 1.15))
-    ax.plot([4.62, 4.62], [0.3, 1.95], ls="--", color=CORAL, lw=1.5)
-    ax.text(
-        4.62,
-        2.05,
-        "val firewall: nothing before this line saw val.csv",
-        ha="center",
-        color=CORAL,
-        fontsize=8.5,
-        weight="bold",
-    )
-    ax.text(
-        0.05,
-        0.35,
-        "Grey: planning   Teal: building   Coral: evaluation discipline   Navy: quality control",
-        fontsize=8,
-        color=NAVY,
-    )
-    fig.savefig(path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
+# ---------------------------------------------------------------- charts
 
 
 def fig_timeline(path: Path, log: list[tuple[str, str, str]]) -> None:
@@ -294,41 +197,78 @@ def fig_behaviour(path: Path, beh: dict) -> None:
     plt.close(fig)
 
 
-def fig_governance(path: Path) -> None:
-    """How rules flow from AGENTS.md to GitHub."""
-    fig, ax = plt.subplots(figsize=(10, 3.0))
-    ax.set_xlim(0, 10)
-    ax.set_ylim(0, 3)
-    ax.axis("off")
-    nodes = [
-        (0.1, "AGENTS.md\nhard rules", CORAL),
-        (2.1, "Coding agent\n+ sub-agents", NAVY),
-        (4.1, "Small conventional\ncommits", TEAL),
-        (6.1, "post-commit hook\nauto-push", GREY),
-        (8.1, "GitHub repo\n+ annotated tags", NAVY),
-    ]
-    for x, t, c in nodes:
-        _box(ax, x, 1.4, 1.75, 1.0, t, c, fs=8.5)
-    for i in range(4):
-        _arrow(ax, (nodes[i][0] + 1.8, 1.9), (nodes[i + 1][0] - 0.05, 1.9))
-    notes = [
-        (0.1, "val never used\nfor decisions;\nreal numbers only"),
-        (2.1, "research, review,\nbuild and QC agents;\nQC is read-only"),
-        (4.1, "commit at least\nevery 15 min; never\nrewrite history"),
-        (6.1, "push failures\nlogged to\n.git/push.log"),
-        (8.1, "pre-val tag proves\nthe freeze came\nbefore val"),
-    ]
-    for x, t in notes:
-        ax.text(x + 0.875, 0.7, t, ha="center", va="center", fontsize=7.5, color=NAVY)
-    fig.savefig(path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-
-
 # ---------------------------------------------------------------- document
+
+CSS = """
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+body { margin: 0; font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
+       color: #1e293b; font-size: 10.2pt; line-height: 1.5; }
+.page { width: 210mm; height: 297mm; padding: 16mm 17mm 14mm; position: relative;
+        page-break-after: always; overflow: hidden; }
+.page:last-child { page-break-after: auto; }
+.foot { position: absolute; bottom: 8mm; left: 17mm; right: 17mm; font-size: 7.5pt;
+        color: #94a3b8; display: flex; justify-content: space-between; }
+.hero { margin: -16mm -17mm 9mm; padding: 15mm 17mm 13mm; color: white;
+        background: linear-gradient(135deg, #14213d 0%, #1d3557 55%, #2a9d8f 130%); }
+.hero .kicker { letter-spacing: .18em; text-transform: uppercase; font-size: 8pt; opacity: .75; }
+.hero h1 { font-size: 30pt; line-height: 1.1; margin: 4mm 0 3mm; font-weight: 700; }
+.hero p { font-size: 11.5pt; opacity: .9; margin: 0; max-width: 150mm; }
+.hero .who { margin-top: 6mm; font-size: 8.5pt; opacity: .7; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin: -18mm 0 8mm; }
+.stat { background: white; border-radius: 4mm; padding: 5mm 4mm; text-align: center;
+        box-shadow: 0 2mm 6mm rgba(20,33,61,.12); }
+.stat b { display: block; font-size: 22pt; line-height: 1.1; }
+.stat span { font-size: 8pt; color: #475569; }
+.eyebrow { font-size: 7.8pt; letter-spacing: .2em; text-transform: uppercase; color: #2a9d8f;
+           font-weight: 700; margin-top: 6mm; }
+h2 { font-size: 17pt; margin: 1mm 0 3mm; color: #14213d; }
+h3 { font-size: 11pt; margin: 5mm 0 2mm; color: #14213d; }
+p { margin: 0 0 2.6mm; }
+.lead { font-size: 11pt; color: #334155; }
+.callout { border-left: 1.2mm solid #e76f51; background: #fff7f3; padding: 3.5mm 5mm;
+           border-radius: 0 3mm 3mm 0; margin: 4mm 0; }
+.callout.teal { border-color: #2a9d8f; background: #f0faf8; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
+.card { background: #f8fafc; border: .3mm solid #e2e8f0; border-radius: 3mm; padding: 4mm; }
+.card h4 { margin: 0 0 1.5mm; font-size: 9.5pt; color: #14213d; }
+.card p, .card li { font-size: 8.8pt; color: #475569; }
+.card ul { margin: 0; padding-left: 4mm; }
+figure { margin: 3mm 0 4mm; }
+figure { text-align: center; } figure img { width: 100%; }
+figcaption { text-align: left; }
+.eyebrow.tight { margin-top: 3mm; }
+figcaption { font-size: 8pt; color: #64748b; margin-top: 1mm; }
+.flow { display: flex; align-items: stretch; gap: 1.6mm; margin: 4mm 0 2mm; }
+.step { flex: 1; border-radius: 2.5mm; padding: 2.6mm 1.5mm; text-align: center; color: white;
+        font-size: 7.6pt; line-height: 1.25; font-weight: 600; }
+.step small { display: block; font-weight: 400; opacity: .85; margin-top: .8mm; }
+.plan { background: #94a3b8; } .build { background: #2a9d8f; } .eval { background: #e76f51; }
+.qc { background: #14213d; }
+.firewall { font-size: 7.8pt; color: #e76f51; font-weight: 700; text-align: center; }
+table { width: 100%; border-collapse: collapse; font-size: 8.8pt; }
+th { text-align: left; color: #64748b; font-weight: 600; font-size: 7.8pt; letter-spacing: .06em;
+     text-transform: uppercase; border-bottom: .4mm solid #14213d; padding: 1.5mm 2mm; }
+td { padding: 1.5mm 2mm; border-bottom: .2mm solid #e2e8f0; vertical-align: top; }
+td:first-child { font-weight: 600; color: #14213d; width: 34%; }
+.tick { color: #2a9d8f; font-weight: 700; }
+.tags span { display: inline-block; background: #e2f3f1; color: #1f6f66; border-radius: 9mm;
+             padding: .6mm 2.6mm; margin: 0 1mm 1.4mm 0; font-size: 8pt; }
+.chain { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2.5mm; margin: 3mm 0; }
+.link { border-radius: 3mm; padding: 3mm; color: white; font-size: 8pt; position: relative; }
+.link b { display: block; font-size: 9pt; margin-bottom: 1mm; }
+.link:not(:last-child)::after { content: "›"; position: absolute; right: -2.4mm; top: 35%;
+             color: #14213d; font-size: 14pt; font-weight: 700; }
+"""
+
+
+def esc(text: str) -> str:
+    """Minimal HTML escaping for values pulled from files."""
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
 def main() -> None:
-    """Render figures and assemble the PDF."""
+    """Render charts, assemble the HTML, print it to PDF with headless Chrome."""
     val, beh = load("val_metrics.json"), load("behavioural_tests.json")
     base, enc = load("baseline/cv_metrics.json"), load("encoder/cv_metrics.json")
     log = commits()
@@ -336,361 +276,212 @@ def main() -> None:
     minutes = t[-1] - t[0]
 
     tmp = Path(tempfile.mkdtemp())
-    figs = {
-        n: tmp / f"{n}.png"
-        for n in ("cover", "workflow", "timeline", "val", "cv", "behaviour", "governance")
-    }
-    fig_cover(figs["cover"], val, beh, len(log), minutes)
-    fig_workflow(figs["workflow"])
+    figs = {n: tmp / f"{n}.png" for n in ("timeline", "val", "cv", "behaviour")}
     fig_timeline(figs["timeline"], log)
     fig_val(figs["val"], val)
     fig_cv(figs["cv"], base, enc)
     fig_behaviour(figs["behaviour"], beh)
-    fig_governance(figs["governance"])
 
-    h1 = ParagraphStyle(
-        "h1",
-        fontName="DVB",
-        fontSize=15,
-        textColor=colors.HexColor(NAVY),
-        spaceBefore=6,
-        spaceAfter=6,
-    )
-    h2 = ParagraphStyle(
-        "h2",
-        fontName="DVB",
-        fontSize=11.5,
-        textColor=colors.HexColor(TEAL),
-        spaceBefore=8,
-        spaceAfter=3,
-    )
-    body = ParagraphStyle("b", fontName="DV", fontSize=9.3, leading=13.2, spaceAfter=4)
-    small = ParagraphStyle(
-        "s", parent=body, fontSize=8, textColor=colors.HexColor(GREY), alignment=TA_CENTER
-    )
-    title = ParagraphStyle(
-        "t", fontName="DVB", fontSize=24, leading=29, textColor=colors.HexColor(NAVY)
-    )
-    sub = ParagraphStyle(
-        "st", fontName="DV", fontSize=12, leading=16, textColor=colors.HexColor(TEAL)
-    )
-
-    def img(p: Path, width: float = 17.5) -> Image:
-        im = Image(str(p))
-        im.drawWidth, im.drawHeight = width * cm, width * cm * im.imageHeight / im.imageWidth
-        return im
-
-    def table(rows: list[list[str]], widths: list[float]) -> Table:
-        hdr = ParagraphStyle("hdr", parent=body, fontName="DVB", textColor=colors.white)
-        data = [[Paragraph(c, hdr if i == 0 else body) for c in r] for i, r in enumerate(rows)]
-        tb = Table(data, colWidths=[w * cm for w in widths])
-        tb.setStyle(
-            TableStyle(
-                [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(NAVY)),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor(LIGHT)]),
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("GRID", (0, 0), (-1, -1), 0.3, colors.HexColor("#cbd5e1")),
-                ]
-            )
-        )
-        return tb
-
-    b = base["standard_cv"]["at_tuned"]["f1/macro"]
+    vm = val["baseline"]["at_tuned"]["f1/macro"]
+    lo, hi = val["baseline"]["ci_at_tuned"]["f1/macro"]
+    floor = val["all-positive floor"]["at_tuned"]["f1/macro"]
+    bs = base["standard_cv"]["at_tuned"]["f1/macro"]
     bh = base["heldout_vocab_cv"]["at_tuned_mean_over_folds"]["f1/macro"]
     eh = enc["heldout_vocab_cv"]["at_tuned_mean_over_folds"]["f1/macro"]
-    vm = val["baseline"]["at_tuned"]["f1/macro"]
-    vci = val["baseline"]["ci_at_tuned"]["f1/macro"]
-
-    s = [
-        Paragraph("Dhad Readability Classifier", title),
-        Paragraph(
-            "Take-home report: multi-label difficulty scoring, built with an "
-            "agent-assisted, evaluation-first workflow",
-            sub,
-        ),
-        Spacer(1, 6),
-        Paragraph(
-            "Bisharah Estephan · Miqyas al Dhad contractor application · 29 October 2026", body
-        ),
-        Spacer(1, 10),
-        img(figs["cover"]),
-        Spacer(1, 8),
-        Paragraph("At a glance", h1),
-        Paragraph(
-            f"A model that, given a short English passage, outputs three independent "
-            f"probabilities: lexical load, syntactic complexity and conceptual abstraction. "
-            f"The delivered TF-IDF + logistic regression model scores <b>macro F1 {vm:.3f}</b> "
-            f"(95% CI {vci[0]:.2f}–{vci[1]:.2f}) on the held-out validation set, against 0.524 for "
-            f"always predicting 'present'. Validation data was opened exactly once, after the "
-            f"model and thresholds were frozen under the git tag <b>pre-val</b>.",
-            body,
-        ),
-        Paragraph(
-            f"The central finding is about <b>unseen vocabulary</b>. In this data each label is "
-            f"driven by a handful of slot words, so ordinary cross-validation rewards "
-            f"memorisation. Holding whole words out drops the baseline from {b:.3f} to {bh:.3f}; "
-            f"a fine-tuned DeBERTa-v3 encoder reaches {eh:.3f}. Controlled behavioural tests show "
-            f"why: shown words that never occur in training, the baseline barely reacts while "
-            f"the encoder responds almost as strongly as to familiar words.",
-            body,
-        ),
-        Paragraph("1. The project", h1),
-        Paragraph(
-            "The brief asked for a multi-label classifier over a synthetic dataset "
-            "(480 training and 120 validation passages) within a two-hour budget, using "
-            "local or free compute only, and without hand-written rules derived from the "
-            "validation set. It evaluates ways of working and motivated technical choices, "
-            "not raw model quality.",
-            body,
-        ),
-        table(
-            [
-                ["The brief asked for", "What was delivered"],
-                [
-                    "Training code that reads train.csv and writes a checkpoint",
-                    "<font name='DVB'>uv run dhad-train</font>: cross-validation, threshold tuning, "
-                    "refit, checkpoint and run manifest",
-                ],
-                [
-                    "Three probabilities per passage (multi-label)",
-                    "predict_proba returns an (n, 3) array in [0, 1]",
-                ],
-                [
-                    "Evaluation on val.csv with per-dimension and macro F1",
-                    f"<font name='DVB'>uv run dhad-evaluate</font>: macro F1 {vm:.3f} with bootstrap "
-                    "CIs, plus ROC-AUC, average precision, Brier and a shortcut check",
-                ],
-                [
-                    "README of one page or less with 2–3 design choices",
-                    "README with three design choices, results and limitations",
-                ],
-                [
-                    "Local compute, no rules written from val",
-                    "Mac + personal RTX 5090; val read by one module, once",
-                ],
-            ],
-            [6.5, 11],
-        ),
-        Spacer(1, 6),
-        Paragraph(
-            "Beyond the brief: a DeBERTa-v3 encoder, held-out-vocabulary cross-validation, "
-            "behavioural tests, 20 unit tests, a reproducible train-only data analysis, "
-            "and a fresh-clone check that reproduces every committed number exactly.",
-            body,
-        ),
-        Paragraph("2. How I worked", h1),
-        Paragraph(
-            "The work ran as an evaluation-first pipeline. I set the rules first, then "
-            "used AI agents for breadth (research, review, parallel implementation, "
-            "QC), and kept every decision that touches evaluation under my own control.",
-            body,
-        ),
-        img(figs["workflow"]),
-        Paragraph(
-            "Figure 1. Delivery pipeline. The dashed line is the validation firewall.", small
-        ),
-        Paragraph("Thirteen agents, each with a narrow brief", h2),
-        Paragraph(
-            "<b>Research (4):</b> modelling, evaluation methodology, engineering stack and "
-            "a train-only data analysis. <b>Plan review (3):</b> model choice and licence "
-            "check against Hugging Face, a data-scientist and readability-expert critique, "
-            "and a grader's view. <b>Build (2):</b> unit tests and the analysis script, "
-            "written in parallel on files that did not overlap. <b>Final QC (4, "
-            "read-only):</b> every number against the result files, code correctness, "
-            "privacy and git hygiene, and the brief's deliverables.",
-            body,
-        ),
-        Paragraph(
-            "Agent output was checked, not trusted: the reviews reordered the plan "
-            "(baseline deliverables first, encoder time-boxed), one agent's claim of "
-            "swapped figures was checked and rejected, and QC findings were applied "
-            "only when verified. Correct but untestable code issues were documented rather "
-            "than patched blind.",
-            body,
-        ),
-        Paragraph("Delivery timeline", h2),
-        img(figs["timeline"]),
-        Paragraph(
-            f"Figure 2. {len(log)} commits in {minutes} minutes, coloured by "
-            "conventional-commit type. The freeze precedes the single val run.",
-            small,
-        ),
-        Paragraph("3. Results", h1),
-        KeepTogether(
-            [
-                img(figs["val"], 15.5),
-                Paragraph(
-                    "Figure 3. Validation F1 with 95% bootstrap CIs (2,000 resamples), "
-                    "computed once, after the freeze.",
-                    small,
-                ),
-            ]
-        ),
-        KeepTogether(
-            [
-                img(figs["cv"]),
-                Paragraph(
-                    "Figure 4. Train cross-validation. On unseen words the encoder holds up; "
-                    "the gain is in abstraction. Lexical load does not improve.",
-                    small,
-                ),
-            ]
-        ),
-        Paragraph("What did each model actually learn?", h2),
-        Paragraph(
-            "F1 cannot show <i>why</i> a model is right. The behavioural tests change one "
-            "factor at a time in 200 minimal pairs built from the training templates, "
-            "using words seen in training and words verified never to occur in it "
-            "(e.g. <i>isotope</i>, <i>jurisprudence</i>, <i>morality</i>, <i>virtue</i>). "
-            "Validation data is not used.",
-            body,
-        ),
-        img(figs["behaviour"]),
-        Paragraph(
-            "Figure 5. Rise in the targeted label's probability. Highlighted: unseen "
-            "words, where only the encoder generalises. Off-target shifts stay at 0.04 or "
-            "less, except a shared shortcut: the complex template alone raises lexical "
-            "load (+0.10 / +0.17).",
-            small,
-        ),
-        PageBreak(),
-        Paragraph("4. Tools", h1),
-        table(
-            [
-                ["Area", "Tools", "Why"],
-                [
-                    "Coding agent",
-                    "Claude Code with parallel sub-agents",
-                    "Breadth for research, review, build and QC; decisions kept with me",
-                ],
-                [
-                    "Environment",
-                    "uv, uv.lock, Python 3.12+",
-                    "Reproducible installs; heavy deep-learning stack is an optional extra",
-                ],
-                [
-                    "Modelling",
-                    "scikit-learn, PyTorch 2.15, transformers 5.21",
-                    "TF-IDF + LR baseline; DeBERTa-v3-base (MIT) fine-tune",
-                ],
-                [
-                    "Evaluation",
-                    "iterative-stratification, bootstrap CIs",
-                    "Multi-label stratified and held-out-vocabulary CV",
-                ],
-                [
-                    "Quality",
-                    "pytest (20 tests), ruff lint + format",
-                    "Fast tests with no downloads",
-                ],
-                [
-                    "Compute",
-                    "Mac for development, personal RTX 5090 for the encoder",
-                    "Local only, no paid APIs",
-                ],
-                [
-                    "Reporting",
-                    "matplotlib, reportlab",
-                    "This report is generated from the result files",
-                ],
-            ],
-            [3, 6, 8.5],
-        ),
-        Paragraph("5. Governance in the GitHub repository", h1),
-        img(figs["governance"]),
-        Paragraph(
-            "Figure 6. Rules flow from AGENTS.md through the agents to every pushed commit.", small
-        ),
-        table(
-            [
-                ["Mechanism", "What it guarantees"],
-                [
-                    "AGENTS.md (checked in)",
-                    "Hard rules for any coding agent: val never used for training, tuning or "
-                    "selection; every number from a real run; no secrets or large files; no history "
-                    "rewriting; ask when unsure.",
-                ],
-                [
-                    "pre-val annotated tag",
-                    "Model and thresholds frozen in results/selection.json before val.csv was read. "
-                    "The val results commit comes after the tag.",
-                ],
-                [
-                    "Single val reader",
-                    "Only dhad-evaluate reads val.csv; tests and the behavioural script never do.",
-                ],
-                [
-                    "post-commit hook",
-                    "Every commit is pushed immediately; failures go to .git/push.log.",
-                ],
-                [
-                    "Conventional commits",
-                    "feat / fix / test / docs / results / chore, with "
-                    "Co-Authored-By trailers that make agent involvement visible.",
-                ],
-                [
-                    "Run manifests",
-                    "Each run records its git SHA, the SHA-256 of the data and the "
-                    "chosen settings.",
-                ],
-                [
-                    "Plan and progress in docs/",
-                    "Research, plan, review revisions and a "
-                    "story-point tracker are committed, so the process can be audited.",
-                ],
-            ],
-            [4.5, 13],
-        ),
-        Paragraph("6. Honest limitations", h1),
-        Paragraph(
-            "• Syntactic complexity is learned from the template: F1 is 0.00 within the "
-            "simple template and 0.94 within the complex one.<br/>"
-            "• Labels are synthetic and noisy, which caps the reachable F1 "
-            "(ceilings in results/train_analysis.md).<br/>"
-            "• 120 validation rows: differences under about 0.05 F1 are noise.<br/>"
-            "• The encoder was trained after the freeze, so it is exploratory and has no "
-            "val score. Two bugs found on the way (fp16 weights under transformers 5, "
-            "and a config file overwrite) were fixed and documented.",
-            body,
-        ),
-        Paragraph("Next steps and transfer to Arabic", h2),
-        Paragraph(
-            "Swap in an Arabic encoder (CAMeLBERT-MSA, AraBERTv2) and turn the "
-            "held-out-vocabulary CV into a held-out-root CV; measure lexical load "
-            "from root and pattern rarity, and syntax from clitic and iḍāfa depth; move "
-            "from binary flags to human-labelled ordinal difficulty levels.",
-            body,
-        ),
-    ]
-
-    def footer(canvas, doc) -> None:
-        canvas.saveState()
-        canvas.setFont("DV", 7.5)
-        canvas.setFillColor(colors.HexColor(GREY))
-        canvas.drawString(
-            2 * cm,
-            1.2 * cm,
-            "Dhad readability classifier · generated by "
-            "scripts/make_report.py from committed results",
-        )
-        canvas.drawRightString(A4[0] - 2 * cm, 1.2 * cm, str(doc.page))
-        canvas.setFillColor(colors.HexColor(TEAL))
-        canvas.rect(0, A4[1] - 0.35 * cm, A4[0], 0.35 * cm, stroke=0, fill=1)
-        canvas.restoreState()
-
-    doc = SimpleDocTemplate(
-        str(OUT),
-        pagesize=A4,
-        leftMargin=1.8 * cm,
-        rightMargin=1.8 * cm,
-        topMargin=1.5 * cm,
-        bottomMargin=1.8 * cm,
-        title="Dhad Readability Classifier: report",
-        author="Bisharah Estephan",
+    bl = beh["baseline"]["lexical (unseen words)"]["lexical_load"]
+    el = beh["encoder"]["lexical (unseen words)"]["lexical_load"]
+    ba = beh["baseline"]["abstract (unseen words)"]["conceptual_abstraction"]
+    ea = beh["encoder"]["abstract (unseen words)"]["conceptual_abstraction"]
+    foot = (
+        '<div class="foot"><span>Dhad readability classifier · generated by '
+        "scripts/make_report.py from committed results</span><span>{}</span></div>"
     )
-    doc.build(s, onFirstPage=footer, onLaterPages=footer)
+
+    html = f"""<!doctype html><html><head><meta charset="utf-8"><style>{CSS}</style></head><body>
+
+<section class="page">
+  <div class="hero">
+    <div class="kicker">Miqyas al Dhad · take-home report</div>
+    <h1>Dhad Readability Classifier</h1>
+    <p>Multi-label difficulty scoring, built with an agent-assisted, evaluation-first
+    workflow, and tested on words the model has never seen.</p>
+    <div class="who">Bisharah Estephan · 29 October 2026</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b style="color:{TEAL}">{vm:.3f}</b><span>val macro F1<br>floor {floor:.3f}</span></div>
+    <div class="stat"><b style="color:{CORAL}">+{el:.2f}</b><span>encoder response to<br>unseen technical words</span></div>
+    <div class="stat"><b style="color:{NAVY}">{len(log)}</b><span>commits in<br>{minutes} minutes</span></div>
+    <div class="stat"><b style="color:#c9a227">13</b><span>AI agents, each<br>with a narrow brief</span></div>
+  </div>
+
+  <div class="eyebrow">At a glance</div>
+  <h2>A model that reads difficulty three ways</h2>
+  <p class="lead">Given a short English passage, the model returns three independent
+  probabilities: <b>lexical load</b>, <b>syntactic complexity</b> and <b>conceptual
+  abstraction</b>.</p>
+  <p>The delivered TF-IDF + logistic regression model scores <b>macro F1 {vm:.3f}</b>
+  (95% CI {lo:.2f}–{hi:.2f}) on the validation set, against {floor:.3f} for always predicting
+  "present". Validation data was opened <b>exactly once</b>, after the model and thresholds
+  were frozen under the git tag <code>pre-val</code>.</p>
+  <div class="callout">
+    <b>The central finding: unseen vocabulary.</b> In this data each label hangs on a handful
+    of slot words, so ordinary cross-validation rewards memorisation. Holding whole words out
+    drops the baseline from {bs:.3f} to {bh:.3f}; a fine-tuned DeBERTa-v3 encoder reaches
+    {eh:.3f}. Shown words that never occur in training, the baseline barely reacts
+    (+{bl:.2f}, +{ba:.2f}), while the encoder responds almost as strongly as to familiar words
+    (+{el:.2f}, +{ea:.2f}).
+  </div>
+
+  <div class="eyebrow tight">01 · The project</div>
+  <h2>What was asked, what was delivered</h2>
+  <table>
+    <tr><th>The brief asked for</th><th>Delivered</th></tr>
+    <tr><td>Training code that reads train.csv and writes a checkpoint</td>
+        <td><span class="tick">✓</span> <code>uv run dhad-train</code>: CV, threshold tuning, refit, checkpoint and run manifest</td></tr>
+    <tr><td>Three probabilities per passage (multi-label)</td>
+        <td><span class="tick">✓</span> <code>predict_proba</code> returns an (n, 3) array in [0, 1]</td></tr>
+    <tr><td>Evaluation on val.csv: per-dimension and macro F1</td>
+        <td><span class="tick">✓</span> <code>uv run dhad-evaluate</code>: F1 with bootstrap CIs, plus AUC, AP, Brier and a shortcut check</td></tr>
+    <tr><td>README of one page or less, 2–3 design choices</td>
+        <td><span class="tick">✓</span> Three design choices, results and limitations</td></tr>
+    <tr><td>Local compute; no rules written from val</td>
+        <td><span class="tick">✓</span> Mac + personal RTX 5090; val read by one module, once</td></tr>
+  </table>
+  {foot.format(1)}
+</section>
+
+<section class="page">
+  <div class="eyebrow">02 · How I worked</div>
+  <h2>Evaluation-first, agent-assisted</h2>
+  <p class="lead">I set the rules first, then used AI agents for breadth: research, review,
+  parallel implementation and QC. Every decision that touches evaluation stayed with me.</p>
+  <div class="firewall">▼ validation firewall: nothing to the left ever saw val.csv</div>
+  <div class="flow">
+    <div class="step plan">Discover<small>4 research agents</small></div>
+    <div class="step plan">Plan<small>committed first</small></div>
+    <div class="step plan">Review<small>3 review agents</small></div>
+    <div class="step build">Build baseline<small>+ 2 build agents</small></div>
+    <div class="step eval">Freeze<small>tag pre-val</small></div>
+    <div class="step eval">val.csv<small>read once</small></div>
+    <div class="step build">Encoder<small>RTX 5090</small></div>
+    <div class="step build">Behaviour tests<small>seen vs unseen</small></div>
+    <div class="step qc">Final QC<small>4 read-only agents</small></div>
+  </div>
+
+  <h3>Thirteen agents, each with a narrow brief</h3>
+  <div class="grid2">
+    <div class="card"><h4>Research · 4</h4><p>Modelling, evaluation methodology,
+      engineering stack, and a train-only analysis of the data.</p></div>
+    <div class="card"><h4>Plan review · 3</h4><p>Model choice and licences checked on
+      Hugging Face, a data scientist and readability expert, and a grader's view.</p></div>
+    <div class="card"><h4>Build · 2</h4><p>Unit tests and the analysis script, written in
+      parallel on files that did not overlap.</p></div>
+    <div class="card"><h4>Final QC · 4, read-only</h4><p>Numbers against result files, code
+      correctness, privacy and git hygiene, and the brief's deliverables.</p></div>
+  </div>
+  <div class="callout teal"><b>Agent output was checked, not trusted.</b> The reviews
+  reordered the plan (baseline deliverables first, encoder time-boxed). One agent's claim of
+  swapped figures was checked and rejected. QC findings were applied only when verified, and
+  correct but untestable code issues were documented rather than patched blind.</div>
+
+  <h3>Delivery timeline</h3>
+  <figure><img src="{figs["timeline"].name}">
+  <figcaption>{len(log)} commits in {minutes} minutes, coloured by conventional-commit type.
+  The freeze precedes the single validation run.</figcaption></figure>
+  {foot.format(2)}
+</section>
+
+<section class="page">
+  <div class="eyebrow">03 · Results</div>
+  <h2>Well above the floor, honest about the noise</h2>
+  <figure><img style="width:80%" src="{figs["val"].name}">
+  <figcaption>Validation F1 with 95% bootstrap CIs (2,000 resamples), computed once, after
+  the freeze. With 120 rows, gaps under about 0.05 are noise.</figcaption></figure>
+  <figure><img style="width:90%" src="{figs["cv"].name}">
+  <figcaption>Train cross-validation. On unseen words the encoder holds up; the gain is in
+  abstraction, while lexical load does not improve.</figcaption></figure>
+  <h3>What did each model actually learn?</h3>
+  <p>F1 cannot show <i>why</i> a model is right. Behavioural tests change one factor at a
+  time in 200 minimal pairs built from the training templates, using words seen in training
+  and words verified never to occur in it (<i>isotope, jurisprudence, morality, virtue</i>).
+  Validation data is not used.</p>
+  <figure><img style="width:86%" src="{figs["behaviour"].name}">
+  <figcaption>Rise in the targeted label's probability. Highlighted: unseen words, where only
+  the encoder generalises. Off-target shifts stay at 0.04 or less, except a shared shortcut:
+  the complex template alone raises lexical load.</figcaption></figure>
+  {foot.format(3)}
+</section>
+
+<section class="page">
+  <div class="eyebrow">04 · Governance</div>
+  <h2>How the GitHub repository keeps the work honest</h2>
+  <div class="chain">
+    <div class="link" style="background:{CORAL}"><b>AGENTS.md</b>hard rules for every agent</div>
+    <div class="link" style="background:{NAVY}"><b>Agents</b>research, review, build, QC</div>
+    <div class="link" style="background:{TEAL}"><b>Commits</b>small, conventional, ≤ 15 min apart</div>
+    <div class="link" style="background:#64748b"><b>Hook</b>post-commit auto-push</div>
+    <div class="link" style="background:{NAVY}"><b>GitHub</b>history + annotated tags</div>
+  </div>
+  <table>
+    <tr><th>Mechanism</th><th>What it guarantees</th></tr>
+    <tr><td>AGENTS.md (checked in)</td><td>val never used for training, tuning or selection;
+      every number from a real run; no secrets or large files; no history rewriting.</td></tr>
+    <tr><td><code>pre-val</code> annotated tag</td><td>Model and thresholds frozen in
+      results/selection.json before val.csv was read; the val results commit comes after it.</td></tr>
+    <tr><td>Single val reader</td><td>Only <code>dhad-evaluate</code> reads val.csv; tests and
+      behavioural tests never do.</td></tr>
+    <tr><td>post-commit hook</td><td>Every commit is pushed immediately; failures are logged to
+      .git/push.log.</td></tr>
+    <tr><td>Conventional commits</td><td>feat / fix / test / docs / results / chore, with
+      Co-Authored-By trailers that make agent involvement visible.</td></tr>
+    <tr><td>Run manifests</td><td>Each run records its git SHA, the SHA-256 of its data and the
+      chosen settings.</td></tr>
+    <tr><td>Plan and progress in docs/</td><td>Research, plan, review revisions and a
+      story-point tracker are committed, so the process can be audited.</td></tr>
+  </table>
+
+  <div class="eyebrow">05 · Tools</div>
+  <div class="tags">
+    <span>Claude Code + parallel sub-agents</span><span>uv · uv.lock</span><span>Python 3.12+</span>
+    <span>scikit-learn</span><span>PyTorch 2.15</span><span>transformers 5.21</span>
+    <span>DeBERTa-v3-base (MIT)</span><span>iterative-stratification</span>
+    <span>pytest · 20 tests</span><span>ruff</span><span>matplotlib</span>
+    <span>git + GitHub</span><span>personal RTX 5090</span>
+  </div>
+
+  <div class="grid2" style="margin-top:4mm">
+    <div class="card"><h4>Honest limitations</h4><ul>
+      <li>Syntactic complexity is learned from the template (F1 0.00 within the simple
+      template, 0.94 within the complex one).</li>
+      <li>Synthetic, noisy labels cap the reachable F1.</li>
+      <li>120 validation rows: gaps under about 0.05 F1 are noise.</li>
+      <li>The encoder came after the freeze: exploratory, no val score. Two bugs found on
+      the way were fixed and documented.</li></ul></div>
+    <div class="card"><h4>Next: transfer to Arabic</h4><ul>
+      <li>Arabic encoder (CAMeLBERT-MSA, AraBERTv2); held-out-vocabulary CV becomes
+      held-out-root CV.</li>
+      <li>Lexical load from root and pattern rarity; syntax from clitic and iḍāfa depth.</li>
+      <li>Human-labelled ordinal difficulty levels instead of binary flags.</li></ul></div>
+  </div>
+  {foot.format(4)}
+</section>
+</body></html>"""
+
+    page = tmp / "report.html"
+    page.write_text(html)
+    subprocess.run(
+        [
+            CHROME,
+            "--headless",
+            "--disable-gpu",
+            "--no-pdf-header-footer",
+            f"--print-to-pdf={OUT}",
+            page.as_uri(),
+        ],
+        check=True,
+        capture_output=True,
+    )
+    shutil.rmtree(tmp)
     print(f"wrote {OUT}")
 
 
