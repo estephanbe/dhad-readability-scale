@@ -50,3 +50,14 @@ train cross-validation, from [`results/encoder/cv_metrics.json`](../results/enco
 See the README section and [`results/behavioural_tests.json`](../results/behavioural_tests.json).
 - On unseen technical terms and abstract nouns, the encoder's probability shift is +0.65 / +0.74,
   against the baseline's +0.10 / +0.22.
+
+## Known issues (found in final QC, not fixed in code)
+
+- **The epoch schedule does not match between CV and refit.** CV trains each fold once with a
+  10-epoch learning-rate schedule and scores it after every epoch. The refit then uses a schedule
+  that decays over the *chosen* number of epochs. Had CV chosen fewer than 10 epochs, the refit
+  would have used a different schedule from the one that was scored. This run chose 10, the cap,
+  so the two match here; the cap also means the search was cut off rather than converged. Fix:
+  keep the full-length schedule and stop early at the chosen epoch.
+- **Reports are keyed by model kind.** `dhad-evaluate` and `scripts/behavioural_tests.py` name
+  results by model kind, so two runs of the same kind would overwrite each other in the report.

@@ -9,6 +9,6 @@
 - **With more time:**
   - real human-labelled data, with ordinal difficulty levels rather than binary flags;
   - word-frequency and concreteness features as a strong interpretable baseline;
-  - the shortcut-perturbation tests: swap a technical word into the simple template and check
-    that only lexical load moves;
+  - extend the behavioural tests (`scripts/behavioural_tests.py`) into pass/fail unit tests, and
+    retrain without the template cue words to remove the template → lexical shortcut;
   - an encoder seed ensemble.

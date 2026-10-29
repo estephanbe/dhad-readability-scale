@@ -58,23 +58,24 @@ Status: ✅ done · 🔄 in progress · ⬜ to do
 
 - **13:33** Task materials committed.
 - **13:45** Research notes and plan committed.
-- **13:55** Plan revised after three reviews: baseline-first ordering, single-seed encoder.
-- **13:54–14:00** Baseline pipeline committed. On unseen words it drops from 0.83 to 0.74
+- **13:51** Plan revised after three reviews: baseline-first ordering, single-seed encoder.
+- **13:54** Baseline pipeline committed. On unseen words it drops from 0.83 to 0.74
   macro F1 (lexical load 0.72 → 0.59), which motivates the encoder.
 - **14:04** GPU host dependencies installed; verification interrupted.
 - **14:08** Change of plan: the GPU work was stopped, and the complete submission is shipped
   on the baseline first.
 - **14:10** Model selection frozen (tag `pre-val`). Single val run: macro F1 0.805.
-- **14:11** README, tests (parallel agent) and train analysis script (parallel agent) committed.
+- **14:11–14:13** README, tests (parallel agent) and train analysis script (parallel agent)
+  committed.
 - **14:16** Encoder CV started on the GPU host, with a hard stop at 15:05. Any result is
   exploratory, because selection was frozen before it.
-- **14:34** First encoder runs returned NaN. Cause: transformers 5 loads DeBERTa-v3 in its
+- **14:34–14:35** First encoder runs returned NaN. Cause: transformers 5 loads DeBERTa-v3 in its
   stored fp16 dtype. Fixed by loading in fp32 (`edcb880`).
 - **14:38** Encoder CV finished in 116 s. Held-out-vocab macro F1 0.772 vs 0.741 for the baseline.
   It is exploratory: selection was already frozen, and it was not run on val.
   `results/encoder/config.json` records a stale `git_sha` (`0ed5061-dirty`), because the code was
   copied to the GPU host without its `.git`. The code that actually ran is `edcb880`.
-- **14:42** README trimmed to one page (545 words); encoder and process detail moved to
+- **14:42** README trimmed to 545 words (later 662, after the behavioural tests were added); encoder and process detail moved to
   `docs/encoder.md` and `docs/how-i-worked.md`.
 - **14:44** Fresh-clone check: `uv sync`, `pytest` (20 passed, 1 skipped), `dhad-train --model
   baseline` and `dhad-evaluate` reproduce every committed metric byte for byte. Only run
@@ -88,3 +89,9 @@ Status: ✅ done · 🔄 in progress · ⬜ to do
   - Both models carry a template → lexical shortcut.
   - The tests exposed a checkpoint bug: the run `config.json` overwrote the HF model config. Fixed
     by renaming it `run_config.json`.
+- **15:00** Final QC by four read-only review agents: numbers vs result files, code
+  correctness, privacy and git hygiene, and a grader's review against the brief.
+  - No wrong numbers, no data leakage, no private details.
+  - Fixed: README wording, `.gitignore` (`.venv*/`), this log's timestamps.
+  - Known issues, documented in `docs/encoder.md` and not changed in code: the epoch-schedule
+    mismatch, and reports keyed by model kind.
