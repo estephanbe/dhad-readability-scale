@@ -4,17 +4,17 @@ The backlog behind the [implementation plan](plan/implementation-plan.md), run a
 sprints within the 2-hour budget. Each story has story points (SP) for its relative effort.
 A story counts as done only when its acceptance criteria are met and the work is committed.
 
-**Overall: 29 / 31 SP**
+**Overall: 31 / 31 SP**
 
 ```
-[███████████████████░] 94%
+[████████████████████] 100%
 ```
 
 | Sprint | Goal | Progress |
 |---|---|---|
 | 1. Discovery | Understand the brief and data, agree a plan | `[██████████]` 7/7 SP |
 | 2. Baseline deliverables | Working train + CV pipeline on the baseline | `[██████████]` 10/10 SP |
-| 3. Encoder | Fine-tuned DeBERTa-v3 compared under the same CV (exploratory, after the freeze) | `[███████░░░]` 4/6 SP |
+| 3. Encoder | Fine-tuned DeBERTa-v3 compared under the same CV (exploratory, after the freeze) | `[██████████]` 6/6 SP |
 | 4. Ship | Freeze, single val run, README, QA | `[██████████]` 8/8 SP |
 
 Status: ✅ done · 🔄 in progress · ⬜ to do
@@ -41,9 +41,9 @@ Status: ✅ done · 🔄 in progress · ⬜ to do
 
 | # | Story | SP | Status | Acceptance criteria |
 |---|---|---|---|---|
-| 3.1 | As the developer, I want a DeBERTa-v3 multi-label fine-tuning module | 3 | ✅ | `models/encoder.py` written (not yet run) |
+| 3.1 | As the developer, I want a DeBERTa-v3 multi-label fine-tuning module | 3 | ✅ | `models/encoder.py`; trained on the RTX 5090 |
 | 3.2 | As the developer, I want the GPU environment ready | 1 | ✅ | torch 2.15.0 and transformers 5.21.1 on the RTX 5090 host |
-| 3.3 | As the reviewer, I want the encoder compared with the baseline under both CV schemes | 2 | 🔄 | `results/encoder/cv_metrics.json` committed; hard stop 15:05 |
+| 3.3 | As the reviewer, I want the encoder compared with the baseline under both CV schemes | 2 | ✅ | Held-out-vocab macro F1 0.772 vs baseline 0.741; standard CV 0.816 vs 0.828 |
 
 ## Sprint 4: Ship
 
@@ -68,3 +68,9 @@ Status: ✅ done · 🔄 in progress · ⬜ to do
 - **14:11** README, tests (parallel agent) and train analysis script (parallel agent) committed.
 - **14:16** Encoder CV started on the GPU host, with a hard stop at 15:05. Any result is
   exploratory, because selection was frozen before it.
+- **14:34** First encoder runs returned NaN. Cause: transformers 5 loads DeBERTa-v3 in its
+  stored fp16 dtype. Fixed by loading in fp32 (`edcb880`).
+- **14:38** Encoder CV finished in 116 s. Held-out-vocab macro F1 0.772 vs 0.741 for the baseline.
+  It is exploratory: selection was already frozen, and it was not run on val.
+  `results/encoder/config.json` records a stale `git_sha` (`0ed5061-dirty`), because the code was
+  copied to the GPU host without its `.git`. The code that actually ran is `edcb880`.

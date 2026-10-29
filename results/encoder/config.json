@@ -1,0 +1,19 @@
+{
+  "kind": "encoder",
+  "chosen": "epochs=10",
+  "thresholds": [
+    0.4,
+    0.5,
+    0.4
+  ],
+  "labels": [
+    "lexical_load",
+    "syntactic_complexity",
+    "conceptual_abstraction"
+  ],
+  "seed": 42,
+  "backbone": "microsoft/deberta-v3-base",
+  "git_sha": "0ed506188058eb4d11ca22b7f9aecd6dc9d8b41b-dirty",
+  "train_sha256": "341d65b94b67acc3b961455a2896d4f978596b008636869a7d0397996c0cff7f",
+  "train_seconds": 116.0
+}

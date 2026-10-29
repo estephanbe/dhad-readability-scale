@@ -15,6 +15,14 @@ Given a passage, returns three probabilities in [0, 1]: `lexical_load`, `syntact
   vocabulary CV).
 - The full report, with ROC-AUC, average precision, Brier, subset accuracy and Hamming loss, is
   in [`results/val_report.md`](results/val_report.md).
+- **Encoder (DeBERTa-v3-base), exploratory: trained after the freeze and not run on val.**
+  - Train CV macro F1: 0.816 (standard) and **0.772** (held-out vocabulary).
+  - On unseen words, abstraction F1 is 0.85 against the baseline's 0.73, while lexical load is
+    slightly worse (0.56 vs 0.59).
+  - It beats the baseline by more than the pre-set 0.02 margin, so it would have been selected
+    had it finished before the freeze.
+  - It was still improving at the 10-epoch cap.
+  - Details: [`results/encoder/`](results/encoder/cv_metrics.json).
 
 ## Install, train, evaluate
 
